@@ -11,7 +11,7 @@ app.use(bodyParser.json());
 app.use(cors());
 
 // MongoDB connection (replace with your MongoDB URI)
-const mongoURI = 'mongodb://localhost:27017/medical-appointment-app';
+const mongoURI = 'mongodb://mongo:27017/medical-appointment-app';
 mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB connected...'))
   .catch(err => console.log(err));
