@@ -26,10 +26,10 @@ const appointmentSchema = new mongoose.Schema({
 const Appointment = mongoose.model('Appointment', appointmentSchema);
 
 // Routes
-app.get('/appointments', async (req, res) => {
+app.get('/appointment', async (req, res) => {
   try {
-    const appointments = await Appointment.find();
-    res.json(appointments);
+    const appointment = await Appointment.find();
+    res.json(appointment);
   } catch (err) {
     res.status(500).send(err);
   }
