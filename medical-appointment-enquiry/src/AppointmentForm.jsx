@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 
 const AppointmentForm = ({ addAppointment }) => {
   const [appointment, setAppointment] = useState({
@@ -16,14 +15,24 @@ const AppointmentForm = ({ addAppointment }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Submitting appointment:', appointment);
-    axios.post('http://backend-service:5000/appointment', appointment)
+    console.log('Submitting appointment:', appointment); // Log the appointment data
+    fetch('http://backend-service:5000/appointment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(appointment)
+    })
       .then(response => {
-        console.log('Response data:', response.data);
-        addAppointment(response.data);
-        setAppointment({ patientName: '', date: '', time: '', doctor: '' });
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
       })
-      .catch(error => console.error('Error adding appointment:', error));
+      .then(data => {
+        console.log('Response:', data); // Log the response data
+        addAppointment(data); // Update the parent component with new appointment
+        setAppointment({ patientName: '', date: '', time: '', doctor: '' }); // Clear form
+      })
+      .catch(error => console.error('Error adding appointment:', error)); // Log any errors
   };
 
   return (
