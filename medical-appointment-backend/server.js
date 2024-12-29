@@ -26,7 +26,7 @@ const appointmentSchema = new mongoose.Schema({
 const Appointment = mongoose.model('Appointment', appointmentSchema);
 
 // Routes
-app.get('/appointment', async (req, res) => {
+app.get('/appointments', async (req, res) => {
   try {
     const appointment = await Appointment.find();
     res.json(appointment);
@@ -35,7 +35,7 @@ app.get('/appointment', async (req, res) => {
   }
 });
 
-app.post('/appointments', async (req, res) => {
+app.post('/appointment', async (req, res) => {
   try {
     const newAppointment = new Appointment(req.body);
     await newAppointment.save();

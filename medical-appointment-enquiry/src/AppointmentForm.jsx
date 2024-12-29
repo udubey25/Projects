@@ -16,7 +16,7 @@ const AppointmentForm = ({ addAppointment }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log('Submitting appointment:', appointment); // Log the appointment data
-    fetch('http://backend-service:5000/appointments', {
+    fetch('http://backend-service:5000/appointment', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(appointment)
