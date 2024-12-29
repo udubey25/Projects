@@ -15,8 +15,24 @@ const AppointmentForm = ({ addAppointment }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    addAppointment(appointment);
-    setAppointment({ patientName: '', date: '', time: '', doctor: '' });
+    console.log('Submitting appointment:', appointment); // Log the appointment data
+    fetch('http://backend-service:5000/appointments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(appointment)
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Response:', data); // Log the response data
+        addAppointment(data); // Update the parent component with new appointment
+        setAppointment({ patientName: '', date: '', time: '', doctor: '' }); // Clear form
+      })
+      .catch(error => console.error('Error adding appointment:', error)); // Log any errors
   };
 
   return (
