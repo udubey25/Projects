@@ -1,47 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import AppointmentForm from './AppointmentForm';
-import AppointmentsList from './AppointmentList';
+import AppointmentList from './AppointmentList';
+import './App.css';
 
-const App = () => {
+function App() {
   const [appointments, setAppointments] = useState([]);
 
-  useEffect(() => {
-    fetchAppointments();
-  }, []);
-
-  const fetchAppointments = async () => {
-    try {
-      const response = await fetch('http://localhost:5000/appointments');
-      const data = await response.json();
-      setAppointments(data);
-    } catch (error) {
-      console.error('Error fetching appointments:', error);
-    }
-  };
-
-  const addAppointment = async (appointment) => {
-    try {
-      const response = await fetch('http://localhost:5000/appointment', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(appointment),
-      });
-      const newAppointment = await response.json();
-      setAppointments([...appointments, newAppointment]);
-    } catch (error) {
-      console.error('Error adding appointment:', error);
-    }
+  const addAppointment = (appointment) => {
+    setAppointments([...appointments, appointment]);
   };
 
   return (
-    <div>
-      <h1>Medical Appointment App</h1>
+    <div className="App">
+      <header className="App-header">
+        <h1>Medical Appointment App</h1>
+      </header>
       <AppointmentForm addAppointment={addAppointment} />
-      <AppointmentsList appointments={appointments} />
+      <AppointmentList appointments={appointments} />
     </div>
   );
-};
+}
 
 export default App;
