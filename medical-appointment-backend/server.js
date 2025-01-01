@@ -9,7 +9,7 @@ const port = process.env.PORT || 5000;
 // Middleware
 app.use(bodyParser.json());
 app.use(cors({
-  origin: 'http://your-frontend-domain-or-ip', // Replace with your frontend domain or IP
+  origin: '*', // Replace with your frontend domain or IP
   methods: 'GET,POST,PUT,DELETE',
   allowedHeaders: 'Content-Type'
 }));
