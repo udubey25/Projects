@@ -121,6 +121,7 @@ app.get('/auth/google/callback', passport.authenticate('google', {
 });
 
 
+
 app.get('/auth/microsoft', passport.authenticate('microsoft'));
 
 app.get(
