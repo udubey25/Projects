@@ -4,15 +4,24 @@ const passport = require('passport');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const mongoose = require('mongoose');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const MicrosoftStrategy = require('passport-microsoft').Strategy;
 const GitHubStrategy = require('passport-github2').Strategy;
 const LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
+const User = require('./models/User');
+const authRoutes = require('./routes/auth');
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// MongoDB Connection
+mongoose
+  .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('Connected to MongoDB'))
+  .catch((err) => console.error('MongoDB connection error:', err));
 
 // Middleware
 app.use(cors());
@@ -36,8 +45,21 @@ passport.use(
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       callbackURL: '/auth/google/callback',
     },
-    (accessToken, refreshToken, profile, done) => {
-      return done(null, profile);
+    async (accessToken, refreshToken, profile, done) => {
+      try {
+        let user = await User.findOne({ googleId: profile.id });
+        if (!user) {
+          user = await User.create({
+            googleId: profile.id,
+            name: profile.displayName,
+            email: profile.emails[0].value,
+            photo: profile.photos[0].value,
+          });
+        }
+        done(null, user);
+      } catch (err) {
+        done(err, null);
+      }
     }
   )
 );
@@ -50,8 +72,20 @@ passport.use(
       callbackURL: '/auth/microsoft/callback',
       scope: ['user.read'],
     },
-    (accessToken, refreshToken, profile, done) => {
-      return done(null, profile);
+    async (accessToken, refreshToken, profile, done) => {
+      try {
+        let user = await User.findOne({ microsoftId: profile.id });
+        if (!user) {
+          user = await User.create({
+            microsoftId: profile.id,
+            name: profile.displayName,
+            email: profile.emails[0].value,
+          });
+        }
+        done(null, user);
+      } catch (err) {
+        done(err, null);
+      }
     }
   )
 );
@@ -63,8 +97,20 @@ passport.use(
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
       callbackURL: '/auth/github/callback',
     },
-    (accessToken, refreshToken, profile, done) => {
-      return done(null, profile);
+    async (accessToken, refreshToken, profile, done) => {
+      try {
+        let user = await User.findOne({ githubId: profile.id });
+        if (!user) {
+          user = await User.create({
+            githubId: profile.id,
+            name: profile.displayName,
+            email: profile.emails[0]?.value,
+          });
+        }
+        done(null, user);
+      } catch (err) {
+        done(err, null);
+      }
     }
   )
 );
@@ -77,8 +123,20 @@ passport.use(
       callbackURL: '/auth/linkedin/callback',
       scope: ['r_emailaddress', 'r_liteprofile'],
     },
-    (accessToken, refreshToken, profile, done) => {
-      return done(null, profile);
+    async (accessToken, refreshToken, profile, done) => {
+      try {
+        let user = await User.findOne({ linkedinId: profile.id });
+        if (!user) {
+          user = await User.create({
+            linkedinId: profile.id,
+            name: profile.displayName,
+            email: profile.emails[0]?.value,
+          });
+        }
+        done(null, user);
+      } catch (err) {
+        done(err, null);
+      }
     }
   )
 );
@@ -93,72 +151,11 @@ passport.deserializeUser((user, done) => {
 });
 
 // Routes
+app.use('/auth', authRoutes);
+
+// Root Route
 app.get('/', (req, res) => {
   res.send('Welcome to the Authentication Backend!');
-});
-
-// Local Signup and Login Routes
-app.post('/local/signup', (req, res) => {
-  const { email, password } = req.body;
-  // Simulate user signup logic
-  res.status(200).json({ message: 'User signed up successfully' });
-});
-
-app.post('/local/login', (req, res) => {
-  const { email, password } = req.body;
-  // Simulate user login logic
-  res.status(200).json({ message: 'User logged in successfully' });
-});
-
-// OAuth Routes
-app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-
-app.get('/auth/google/callback', passport.authenticate('google', {
-  failureRedirect: '/login/failure',
-}), (req, res) => {
-  const user = req.user;
-  res.redirect(`http://localhost:3000/dashboard?name=${encodeURIComponent(user.name.givenName)}&email=${encodeURIComponent(user.emails[0].value)}&photo=${encodeURIComponent(user.photos[0].value)}`);
-});
-
-
-
-app.get('/auth/microsoft', passport.authenticate('microsoft'));
-
-app.get(
-  '/auth/microsoft/callback',
-  passport.authenticate('microsoft', {
-    successRedirect: '/login/success',
-    failureRedirect: '/login/failure',
-  })
-);
-
-app.get('/auth/github', passport.authenticate('github', { scope: ['user:email'] }));
-
-app.get(
-  '/auth/github/callback',
-  passport.authenticate('github', {
-    successRedirect: '/login/success',
-    failureRedirect: '/login/failure',
-  })
-);
-
-app.get('/auth/linkedin', passport.authenticate('linkedin'));
-
-app.get(
-  '/auth/linkedin/callback',
-  passport.authenticate('linkedin', {
-    successRedirect: '/login/success',
-    failureRedirect: '/login/failure',
-  })
-);
-
-// Success and Failure Routes
-app.get('/login/success', (req, res) => {
-  res.status(200).json({ message: 'Login successful', user: req.user });
-});
-
-app.get('/login/failure', (req, res) => {
-  res.status(401).json({ message: 'Login failed' });
 });
 
 // Start Server
